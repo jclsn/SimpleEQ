@@ -13,6 +13,13 @@
 #include "juce_audio_processors/juce_audio_processors.h"
 #include "juce_dsp/juce_dsp.h"
 
+enum Slope {
+	Slope_12,
+	Slope_24,
+	Slope_36,
+	Slope_48,
+};
+
 struct ChainSettings {
 	float peakFreq{ 0 }, peakGainInDecibels{ 0 }, peakQuality{ 0 };
 	float lowCutFreq{ 0 }, highCutFreq{ 0 };
