@@ -8,8 +8,18 @@
 
 #pragma once
 
-#include "juce_dsp/juce_dsp.h"
 #include <JuceHeader.h>
+
+#include "juce_audio_processors/juce_audio_processors.h"
+#include "juce_dsp/juce_dsp.h"
+
+struct ChainSettings {
+	float peakFreq{ 0 }, peakGainInDecibels{ 0 }, peakQuality{ 0 };
+	float lowCutFreq{ 0 }, highCutFreq{ 0 };
+	int lowCutSlope{ 0 }, highCutSlope{ 0 };
+};
+
+ChainSettings getChainSettings(juce::AudioProcessorValueTreeState &apvts);
 
 class SimpleEQAudioProcessor : public juce::AudioProcessor {
 public:
@@ -61,6 +71,12 @@ private:
 	using MonoChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
 
 	MonoChain leftChain, rightChain;
+
+	enum ChainPositions {
+		LowCut,
+		Peak,
+		HighCut,
+	};
 
 	JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SimpleEQAudioProcessor)
 };
