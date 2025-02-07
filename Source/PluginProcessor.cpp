@@ -6,7 +6,6 @@
   ==============================================================================
 */
 
-#include "juce_audio_processors/juce_audio_processors.h"
 #include <memory>
 
 #include "PluginProcessor.h"
@@ -120,12 +119,15 @@ void SimpleEQAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
 	auto lowCutCoefficients =
 		juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(
 			chainSettings.lowCutFreq,
-			getSampleRate(),
-				2 * (chainSettings.lowCutSlope + 1));
+			sampleRate,
+			2 * (chainSettings.lowCutSlope + 1));
 
-	updateCutFilter(leftLowCut, lowCutCoefficients, chainSettings);
-	updateCutFilter(rightLowCut, lowCutCoefficients, chainSettings);
-
+	updateCutFilter(leftLowCut,
+			lowCutCoefficients,
+			static_cast<Slope>(chainSettings.lowCutSlope));
+	updateCutFilter(rightLowCut,
+			lowCutCoefficients,
+			static_cast<Slope>(chainSettings.lowCutSlope));
 }
 
 void SimpleEQAudioProcessor::releaseResources()
@@ -189,10 +191,14 @@ void SimpleEQAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
 		juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(
 			chainSettings.lowCutFreq,
 			getSampleRate(),
-				2 * (chainSettings.lowCutSlope + 1));
+			2 * (chainSettings.lowCutSlope + 1));
 
-	updateCutFilter(leftLowCut, lowCutCoefficients, chainSettings);
-	updateCutFilter(rightLowCut, lowCutCoefficients, chainSettings);
+	updateCutFilter(leftLowCut,
+			lowCutCoefficients,
+			static_cast<Slope>(chainSettings.lowCutSlope));
+	updateCutFilter(rightLowCut,
+			lowCutCoefficients,
+			static_cast<Slope>(chainSettings.lowCutSlope));
 
 	juce::dsp::AudioBlock<float> block(buffer);
 
