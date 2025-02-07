@@ -11,6 +11,8 @@
 
 #include "PluginProcessor.h"
 
+#define UNUSED(x) (void)(x)
+
 //==============================================================================
 SimpleEQAudioProcessor::SimpleEQAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -77,21 +79,30 @@ int SimpleEQAudioProcessor::getCurrentProgram()
 	return 0;
 }
 
-void SimpleEQAudioProcessor::setCurrentProgram(int index) {}
+void SimpleEQAudioProcessor::setCurrentProgram(int index) 
+{
+	UNUSED(index);
+}
 
 const juce::String SimpleEQAudioProcessor::getProgramName(int index)
 {
+	UNUSED(index);
+
 	return {};
 }
 
-void SimpleEQAudioProcessor::changeProgramName(int index, const juce::String &newName) {}
+void SimpleEQAudioProcessor::changeProgramName(int index, const juce::String &newName) {
+	
+	UNUSED(index);
+	UNUSED(newName);
+}
 
 //==============================================================================
 void SimpleEQAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
 	juce::dsp::ProcessSpec spec;
 
-	spec.maximumBlockSize = samplesPerBlock;
+	spec.maximumBlockSize = (uint32_t) samplesPerBlock;
 	spec.numChannels = 1;
 	spec.sampleRate = sampleRate;
 
@@ -231,6 +242,7 @@ void SimpleEQAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
 	auto totalNumInputChannels = getTotalNumInputChannels();
 	auto totalNumOutputChannels = getTotalNumOutputChannels();
 
+	UNUSED(midiMessages);
 	// In case we have more outputs than inputs, this code clears any output
 	// channels that didn't contain input data, (because these aren't
 	// guaranteed to be empty - they may contain garbage).
@@ -360,6 +372,7 @@ juce::AudioProcessorEditor *SimpleEQAudioProcessor::createEditor()
 //==============================================================================
 void SimpleEQAudioProcessor::getStateInformation(juce::MemoryBlock &destData)
 {
+	UNUSED(destData);
 	// You should use this method to store your parameters in the memory block.
 	// You could do that either as raw data, or use the XML or ValueTree classes
 	// as intermediaries to make it easy to save and load complex data.
@@ -367,6 +380,8 @@ void SimpleEQAudioProcessor::getStateInformation(juce::MemoryBlock &destData)
 
 void SimpleEQAudioProcessor::setStateInformation(const void *data, int sizeInBytes)
 {
+	UNUSED(data);
+	UNUSED(sizeInBytes);
 	// You should use this method to restore your parameters from this memory block,
 	// whose contents will have been created by the getStateInformation() call.
 }
