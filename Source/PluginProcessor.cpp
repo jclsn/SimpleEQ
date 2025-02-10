@@ -10,6 +10,7 @@
 #include <iterator>
 #include <memory>
 
+#include "PluginEditor.h"
 #include "PluginProcessor.h"
 
 #define UNUSED(x) (void)(x)
@@ -184,8 +185,8 @@ bool SimpleEQAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor *SimpleEQAudioProcessor::createEditor()
 {
-	// return new SimpleEQAudioProcessorEditor(*this);
-	return new juce::GenericAudioProcessorEditor(*this);
+	return new SimpleEQAudioProcessorEditor(*this);
+	// return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
