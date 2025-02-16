@@ -31,11 +31,23 @@ SimpleEQAudioProcessorEditor::SimpleEQAudioProcessorEditor(SimpleEQAudioProcesso
 		addAndMakeVisible(comp);
 	}
 
+	const auto &params = audioProcessor.getParameters();
+	for (auto param : params) {
+		param->addListener(this);	
+	}
+
+	startTimerHz(60);
+
 	setSize(600, 400);
-	setTransform(juce::AffineTransform::scale(2.f));
 }
 
-SimpleEQAudioProcessorEditor::~SimpleEQAudioProcessorEditor() {}
+SimpleEQAudioProcessorEditor::~SimpleEQAudioProcessorEditor() 
+{
+	const auto &params = audioProcessor.getParameters();
+	for (auto param : params) {
+		param->removeListener(this);	
+	}
+}
 
 void SimpleEQAudioProcessorEditor::paint(juce::Graphics &g)
 {
@@ -149,8 +161,12 @@ void SimpleEQAudioProcessorEditor::timerCallback()
 {
 	if (parametersChanged.compareAndSetBool(false, true)) {
 		// update the monoChain
-		//
+		auto chainSettings = getChainSettings(audioProcessor.apvts);
+		auto peakCoefficients = makePeakFilter(chainSettings, audioProcessor.getSampleRate());
+		updateCoefficients(monoChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
+
 		// signal a repaint
+		repaint();
 	}
 }
 
