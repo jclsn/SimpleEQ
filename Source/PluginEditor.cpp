@@ -32,15 +32,14 @@ ResponseCurveComponent::~ResponseCurveComponent()
 		param->removeListener(this);	
 	}
 }
+
 void ResponseCurveComponent::paint(juce::Graphics &g)
 {
 	// (Our component is opaque, so we must completely fill the background with a solid colour)
 	g.fillAll (juce::Colours::black);
 
-	auto bounds = getLocalBounds();
-	auto responseArea = bounds.removeFromTop(bounds.getHeight());
-
-	auto width = responseArea.getWidth();
+	auto responseCurveArea = getLocalBounds();
+	auto responseCurveWidth = responseCurveArea.getWidth();
 
 	auto &lowCut = monoChain.get<ChainPositions::LowCut>();
 	auto &peak = monoChain.get<ChainPositions::Peak>();
@@ -50,12 +49,12 @@ void ResponseCurveComponent::paint(juce::Graphics &g)
 
 	std::vector<double> mags;
 
-	mags.resize(width);
+	mags.resize(responseCurveWidth);
 
-	for (int i = 0; i < width; ++i) {
+	for (int i = 0; i < responseCurveWidth; ++i) {
 		double mag = 1.f;	
 
-		auto freq = juce::mapToLog10((double)i / (double)width, 20.0, 20000.0);
+		auto freq = juce::mapToLog10((double)i / (double)responseCurveWidth, 20.0, 20000.0);
 
 		if (!monoChain.isBypassed<ChainPositions::Peak>())
 			mag *= peak.coefficients->getMagnitudeForFrequency(freq, sampleRate);
@@ -91,21 +90,21 @@ void ResponseCurveComponent::paint(juce::Graphics &g)
 	
 	juce::Path responseCurve;
 
-	const double outputMin = responseArea.getBottom();
-	const double outputMax = responseArea.getY();
+	const double outputMin = responseCurveArea.getBottom();
+	const double outputMax = responseCurveArea.getY();
 
 	auto map = [outputMin, outputMax](double input) {
 		return juce::jmap(input, -24.0, 24.0, outputMin, outputMax);	
 	};
 	
-	responseCurve.startNewSubPath(responseArea.getX(), map(mags.front()));
+	responseCurve.startNewSubPath(responseCurveArea.getX(), map(mags.front()));
 
 	for (size_t i = 1; i < mags.size(); i++) {
-		responseCurve.lineTo(responseArea.getX() + i, map(mags[i]));
+		responseCurve.lineTo(responseCurveArea.getX() + i, map(mags[i]));
 	}
 
-	g.setColour(juce::Colours::orange);
-	g.drawRoundedRectangle(responseArea.toFloat(), 4.f, 1.f);
+	g.setColour(juce::Colours::grey);
+	g.drawRoundedRectangle(responseCurveArea.toFloat(), 4.f, 4.f);
 
 	g.setColour(juce::Colours::white);
 	g.strokePath(responseCurve, juce::PathStrokeType(2.f));
