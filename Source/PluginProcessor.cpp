@@ -15,19 +15,19 @@
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
 
-#define UNUSED(x) (void)(x)
+#define UNUSED(x) (void) (x)
 
 //==============================================================================
 SimpleEQAudioProcessor::SimpleEQAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
-	: AudioProcessor(BusesProperties()
+    : AudioProcessor(BusesProperties()
 #if !JucePlugin_IsMidiEffect
 #if !JucePlugin_IsSynth
-				 .withInput("Input", juce::AudioChannelSet::stereo(), true)
+			 .withInput("Input", juce::AudioChannelSet::stereo(), true)
 #endif
-				 .withOutput("Output", juce::AudioChannelSet::stereo(), true)
+			 .withOutput("Output", juce::AudioChannelSet::stereo(), true)
 #endif
-	  )
+      )
 #endif
 {
 }
@@ -75,7 +75,7 @@ double SimpleEQAudioProcessor::getTailLengthSeconds() const
 int SimpleEQAudioProcessor::getNumPrograms()
 {
 	return 1; // NB: some hosts don't cope very well if you tell them there are 0 programs,
-		// so this should be at least 1, even if you're not really implementing programs.
+		  // so this should be at least 1, even if you're not really implementing programs.
 }
 
 int SimpleEQAudioProcessor::getCurrentProgram()
@@ -95,7 +95,7 @@ const juce::String SimpleEQAudioProcessor::getProgramName(int index)
 	return {};
 }
 
-void SimpleEQAudioProcessor::changeProgramName(int index, const juce::String &newName)
+void SimpleEQAudioProcessor::changeProgramName(int index, const juce::String& newName)
 {
 	UNUSED(index);
 	UNUSED(newName);
@@ -106,7 +106,7 @@ void SimpleEQAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
 {
 	juce::dsp::ProcessSpec spec;
 
-	spec.maximumBlockSize = (uint32_t)samplesPerBlock;
+	spec.maximumBlockSize = (uint32_t) samplesPerBlock;
 	spec.numChannels = 1;
 	spec.sampleRate = sampleRate;
 
@@ -123,7 +123,7 @@ void SimpleEQAudioProcessor::releaseResources()
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool SimpleEQAudioProcessor::isBusesLayoutSupported(const BusesLayout &layouts) const
+bool SimpleEQAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
 #if JucePlugin_IsMidiEffect
 	juce::ignoreUnused(layouts);
@@ -148,8 +148,8 @@ bool SimpleEQAudioProcessor::isBusesLayoutSupported(const BusesLayout &layouts) 
 }
 #endif
 
-void SimpleEQAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer,
-					  juce::MidiBuffer &midiMessages)
+void SimpleEQAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer,
+					  juce::MidiBuffer& midiMessages)
 {
 	juce::ScopedNoDenormals noDenormals;
 	auto totalNumInputChannels = getTotalNumInputChannels();
@@ -185,37 +185,36 @@ bool SimpleEQAudioProcessor::hasEditor() const
 	return true; // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor *SimpleEQAudioProcessor::createEditor()
+juce::AudioProcessorEditor* SimpleEQAudioProcessor::createEditor()
 {
 	return new SimpleEQAudioProcessorEditor(*this);
 	// return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
-void SimpleEQAudioProcessor::getStateInformation(juce::MemoryBlock &destData)
+void SimpleEQAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
 {
 	// You should use this method to store your parameters in the memory block.
 	// You could do that either as raw data, or use the XML or ValueTree classes
 	// as intermediaries to make it easy to save and load complex data.
-	
+
 	juce::MemoryOutputStream mos(destData, true);
 	apvts.state.writeToStream(mos);
 }
 
-void SimpleEQAudioProcessor::setStateInformation(const void *data, int sizeInBytes)
+void SimpleEQAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
 	// You should use this method to restore your parameters from this memory block,
 	// whose contents will have been created by the getStateInformation() call.
-	
+
 	auto tree = juce::ValueTree::readFromData(data, sizeInBytes);
-	if (tree.isValid())
-	{
+	if (tree.isValid()) {
 		apvts.replaceState(tree);
 		updateFilters();
 	}
 }
 
-ChainSettings getChainSettings(juce::AudioProcessorValueTreeState &apvts)
+ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts)
 {
 	ChainSettings settings;
 
@@ -225,23 +224,23 @@ ChainSettings getChainSettings(juce::AudioProcessorValueTreeState &apvts)
 	settings.peakGainInDecibels = apvts.getRawParameterValue("Peak Gain")->load();
 	settings.peakQuality = apvts.getRawParameterValue("Peak Quality")->load();
 	settings.lowCutSlope =
-		static_cast<Slope>(apvts.getRawParameterValue("LowCut Slope")->load());
+	    static_cast<Slope>(apvts.getRawParameterValue("LowCut Slope")->load());
 	settings.highCutSlope =
-		static_cast<Slope>(apvts.getRawParameterValue("HighCut Slope")->load());
+	    static_cast<Slope>(apvts.getRawParameterValue("HighCut Slope")->load());
 
 	return settings;
 }
 
-Coefficients makePeakFilter(const ChainSettings &chainSettings, double sampleRate)
+Coefficients makePeakFilter(const ChainSettings& chainSettings, double sampleRate)
 {
 	return juce::dsp::IIR::Coefficients<float>::makePeakFilter(
-		sampleRate,
-		chainSettings.peakFreq,
-		chainSettings.peakQuality,
-		juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibels));
+	    sampleRate,
+	    chainSettings.peakFreq,
+	    chainSettings.peakQuality,
+	    juce::Decibels::decibelsToGain(chainSettings.peakGainInDecibels));
 }
 
-void SimpleEQAudioProcessor::updatePeakFilter(const ChainSettings &chainSettings)
+void SimpleEQAudioProcessor::updatePeakFilter(const ChainSettings& chainSettings)
 {
 	// auto peakCoefficients = juce::dsp::IIR::Coefficients<float>::makePeakFilter(
 	// 	getSampleRate(),
@@ -254,39 +253,35 @@ void SimpleEQAudioProcessor::updatePeakFilter(const ChainSettings &chainSettings
 	updateCoefficients(rightChain.get<ChainPositions::Peak>().coefficients, peakCoefficients);
 }
 
-void updateCoefficients(Coefficients &old, const Coefficients &replacements)
+void updateCoefficients(Coefficients& old, const Coefficients& replacements)
 {
 	*old = *replacements;
 }
 
-void SimpleEQAudioProcessor::updateLowCutFilters(const ChainSettings &chainSettings)
+void SimpleEQAudioProcessor::updateLowCutFilters(const ChainSettings& chainSettings)
 {
 	/* Update lowCutFilter */
 	auto lowCutCoefficients = makeLowCutFilter(chainSettings, getSampleRate());
-	auto &leftLowCut = leftChain.get<ChainPositions::LowCut>();
-	auto &rightLowCut = rightChain.get<ChainPositions::LowCut>();
+	auto& leftLowCut = leftChain.get<ChainPositions::LowCut>();
+	auto& rightLowCut = rightChain.get<ChainPositions::LowCut>();
 
-	updateCutFilter(leftLowCut,
-			lowCutCoefficients,
-			static_cast<Slope>(chainSettings.lowCutSlope));
-	updateCutFilter(rightLowCut,
-			lowCutCoefficients,
-			static_cast<Slope>(chainSettings.lowCutSlope));
+	updateCutFilter(
+	    leftLowCut, lowCutCoefficients, static_cast<Slope>(chainSettings.lowCutSlope));
+	updateCutFilter(
+	    rightLowCut, lowCutCoefficients, static_cast<Slope>(chainSettings.lowCutSlope));
 }
 
-void SimpleEQAudioProcessor::updateHighCutFilters(const ChainSettings &chainSettings)
+void SimpleEQAudioProcessor::updateHighCutFilters(const ChainSettings& chainSettings)
 {
 	/* Update highCutFilter */
 	auto highCutCoefficients = makeHighCutFilter(chainSettings, getSampleRate());
-	auto &leftHighCut = leftChain.get<ChainPositions::HighCut>();
-	auto &rightHighCut = rightChain.get<ChainPositions::HighCut>();
+	auto& leftHighCut = leftChain.get<ChainPositions::HighCut>();
+	auto& rightHighCut = rightChain.get<ChainPositions::HighCut>();
 
-	updateCutFilter(leftHighCut,
-			highCutCoefficients,
-			static_cast<Slope>(chainSettings.highCutSlope));
-	updateCutFilter(rightHighCut,
-			highCutCoefficients,
-			static_cast<Slope>(chainSettings.highCutSlope));
+	updateCutFilter(
+	    leftHighCut, highCutCoefficients, static_cast<Slope>(chainSettings.highCutSlope));
+	updateCutFilter(
+	    rightHighCut, highCutCoefficients, static_cast<Slope>(chainSettings.highCutSlope));
 }
 
 void SimpleEQAudioProcessor::updateFilters()
@@ -303,34 +298,34 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleEQAudioProcessor::crea
 	juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
 	layout.add(std::make_unique<juce::AudioParameterFloat>(
-		juce::ParameterID("LowCut Freq", 1),
-		"LowCut Freq",
-		juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
-		20.f));
+	    juce::ParameterID("LowCut Freq", 1),
+	    "LowCut Freq",
+	    juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
+	    20.f));
 
 	layout.add(std::make_unique<juce::AudioParameterFloat>(
-		juce::ParameterID("HighCut Freq", 1),
-		"HighCut Freq",
-		juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
-		20000.f));
+	    juce::ParameterID("HighCut Freq", 1),
+	    "HighCut Freq",
+	    juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
+	    20000.f));
 
 	layout.add(std::make_unique<juce::AudioParameterFloat>(
-		juce::ParameterID("Peak Freq", 1),
-		"Peak Freq",
-		juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
-		750.f));
+	    juce::ParameterID("Peak Freq", 1),
+	    "Peak Freq",
+	    juce::NormalisableRange<float>(20.f, 20000.f, 1.f, 0.25f),
+	    750.f));
 
 	layout.add(std::make_unique<juce::AudioParameterFloat>(
-		juce::ParameterID("Peak Gain", 1),
-		"Peak Gain",
-		juce::NormalisableRange<float>(-24.f, 24.f, 0.5f, 1.f),
-		0.0f));
+	    juce::ParameterID("Peak Gain", 1),
+	    "Peak Gain",
+	    juce::NormalisableRange<float>(-24.f, 24.f, 0.5f, 1.f),
+	    0.0f));
 
 	layout.add(std::make_unique<juce::AudioParameterFloat>(
-		juce::ParameterID("Peak Quality", 1),
-		"Peak Quality",
-		juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
-		1.f));
+	    juce::ParameterID("Peak Quality", 1),
+	    "Peak Quality",
+	    juce::NormalisableRange<float>(0.1f, 10.f, 0.05f, 1.f),
+	    1.f));
 
 	juce::StringArray string_array;
 
@@ -341,24 +336,18 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleEQAudioProcessor::crea
 		string_array.add(str);
 	}
 
-	layout.add(
-		std::make_unique<juce::AudioParameterChoice>(juce::ParameterID("LowCut Slope", 1),
-							     "LowCut Slope",
-							     string_array,
-							     0));
+	layout.add(std::make_unique<juce::AudioParameterChoice>(
+	    juce::ParameterID("LowCut Slope", 1), "LowCut Slope", string_array, 0));
 
-	layout.add(
-		std::make_unique<juce::AudioParameterChoice>(juce::ParameterID("HighCut Slope", 1),
-							     "HighCut Slope",
-							     string_array,
-							     0));
+	layout.add(std::make_unique<juce::AudioParameterChoice>(
+	    juce::ParameterID("HighCut Slope", 1), "HighCut Slope", string_array, 0));
 
 	return layout;
 }
 
 //==============================================================================
 // This creates new instances of the plugin..
-juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter()
+juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
 	return new SimpleEQAudioProcessor();
 }

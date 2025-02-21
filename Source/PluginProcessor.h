@@ -13,46 +13,48 @@
 #include "juce_audio_processors/juce_audio_processors.h"
 #include "juce_dsp/juce_dsp.h"
 
-enum Slope {
+enum Slope
+{
 	Slope_12,
 	Slope_24,
 	Slope_36,
 	Slope_48,
 };
 
-struct ChainSettings {
-	float peakFreq{ 0 }, peakGainInDecibels{ 0 }, peakQuality{ 0 };
-	float lowCutFreq{ 0 }, highCutFreq{ 0 };
-	int lowCutSlope{ 0 }, highCutSlope{ 0 };
+struct ChainSettings
+{
+	float peakFreq{0}, peakGainInDecibels{0}, peakQuality{0};
+	float lowCutFreq{0}, highCutFreq{0};
+	int lowCutSlope{0}, highCutSlope{0};
 };
 
-ChainSettings getChainSettings(juce::AudioProcessorValueTreeState &apvts);
+ChainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
 
 using Filter = juce::dsp::IIR::Filter<float>;
 using CutFilter = juce::dsp::ProcessorChain<Filter, Filter, Filter, Filter>;
 using MonoChain = juce::dsp::ProcessorChain<CutFilter, Filter, CutFilter>;
 
-enum ChainPositions {
+enum ChainPositions
+{
 	LowCut,
 	Peak,
 	HighCut,
 };
 
 using Coefficients = Filter::CoefficientsPtr;
-void updateCoefficients(Coefficients &old, const Coefficients &replacements);
+void updateCoefficients(Coefficients& old, const Coefficients& replacements);
 
-Coefficients makePeakFilter(const ChainSettings &chainSettings, double sampleRate);
+Coefficients makePeakFilter(const ChainSettings& chainSettings, double sampleRate);
 
 template <int Index, typename ChainType, typename CoefficientType>
-void update(ChainType &chain, const CoefficientType &coefficients, const Slope &slope)
+void update(ChainType& chain, const CoefficientType& coefficients, const Slope& slope)
 {
 	updateCoefficients(chain.template get<Index>().coefficients, coefficients[Index]);
 	chain.template setBypassed<Index>(false);
 };
 
 template <typename ChainType, typename CoefficientType>
-void updateCutFilter(ChainType &chain, const CoefficientType &coefficients,
-			 const Slope &slope)
+void updateCutFilter(ChainType& chain, const CoefficientType& coefficients, const Slope& slope)
 {
 	chain.template setBypassed<0>(true);
 	chain.template setBypassed<1>(true);
@@ -60,35 +62,31 @@ void updateCutFilter(ChainType &chain, const CoefficientType &coefficients,
 	chain.template setBypassed<3>(true);
 
 	switch (slope) {
-	case Slope_48:
-		update<3>(chain, coefficients, slope);
-	case Slope_36:
-		update<2>(chain, coefficients, slope);
-	case Slope_24:
-		update<1>(chain, coefficients, slope);
-	case Slope_12:
-		update<0>(chain, coefficients, slope);
+		case Slope_48:
+			update<3>(chain, coefficients, slope);
+		case Slope_36:
+			update<2>(chain, coefficients, slope);
+		case Slope_24:
+			update<1>(chain, coefficients, slope);
+		case Slope_12:
+			update<0>(chain, coefficients, slope);
 	}
 };
 
-inline auto makeLowCutFilter(const ChainSettings &chainSettings, double sampleRate)
+inline auto makeLowCutFilter(const ChainSettings& chainSettings, double sampleRate)
 {
 	return juce::dsp::FilterDesign<float>::designIIRHighpassHighOrderButterworthMethod(
-		chainSettings.lowCutFreq,
-		sampleRate,
-		2 * (chainSettings.lowCutSlope + 1));
+	    chainSettings.lowCutFreq, sampleRate, 2 * (chainSettings.lowCutSlope + 1));
 }
 
-inline auto makeHighCutFilter(const ChainSettings &chainSettings, double sampleRate)
+inline auto makeHighCutFilter(const ChainSettings& chainSettings, double sampleRate)
 {
 	return juce::dsp::FilterDesign<float>::designIIRLowpassHighOrderButterworthMethod(
-		chainSettings.highCutFreq,
-		sampleRate,
-		2 * (chainSettings.highCutSlope + 1));
+	    chainSettings.highCutFreq, sampleRate, 2 * (chainSettings.highCutSlope + 1));
 }
 
-
-class SimpleEQAudioProcessor : public juce::AudioProcessor {
+class SimpleEQAudioProcessor : public juce::AudioProcessor
+{
 public:
 	SimpleEQAudioProcessor();
 	~SimpleEQAudioProcessor() override;
@@ -98,13 +96,13 @@ public:
 	void releaseResources() override;
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-	bool isBusesLayoutSupported(const BusesLayout &layouts) const override;
+	bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
 #endif
 
-	void processBlock(juce::AudioBuffer<float> &, juce::MidiBuffer &) override;
+	void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
 	//==============================================================================
-	juce::AudioProcessorEditor *createEditor() override;
+	juce::AudioProcessorEditor* createEditor() override;
 	bool hasEditor() const override;
 
 	//==============================================================================
@@ -119,26 +117,24 @@ public:
 	int getCurrentProgram() override;
 	void setCurrentProgram(int index) override;
 	const juce::String getProgramName(int index) override;
-	void changeProgramName(int index, const juce::String &newName) override;
+	void changeProgramName(int index, const juce::String& newName) override;
 
 	//==============================================================================
-	void getStateInformation(juce::MemoryBlock &destData) override;
-	void setStateInformation(const void *data, int sizeInBytes) override;
+	void getStateInformation(juce::MemoryBlock& destData) override;
+	void setStateInformation(const void* data, int sizeInBytes) override;
 
 	static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
-	juce::AudioProcessorValueTreeState apvts{ *this,
-						  nullptr,
-						  "Parameters",
-						  createParameterLayout() };
+	juce::AudioProcessorValueTreeState apvts{
+	    *this, nullptr, "Parameters", createParameterLayout()};
 
 private:
 	MonoChain leftChain, rightChain;
 
-	void updatePeakFilter(const ChainSettings &chainSettings);
+	void updatePeakFilter(const ChainSettings& chainSettings);
 
-	void updateLowCutFilters(const ChainSettings &chainSettings);
-	void updateHighCutFilters(const ChainSettings &chainSettings);
+	void updateLowCutFilters(const ChainSettings& chainSettings);
+	void updateHighCutFilters(const ChainSettings& chainSettings);
 
 	void updateFilters();
 

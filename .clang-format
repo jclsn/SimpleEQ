@@ -1,0 +1,43 @@
+BasedOnStyle: LLVM
+IndentWidth: 8
+UseTab: Always
+ColumnLimit: 100 # Reasonable limit for readability
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterControlStatement: false
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true
+  BeforeElse: false
+  IndentBraces: false
+PointerAlignment: Left # Align * with type (NL.26)
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignOperands: true
+AlignTrailingComments: true
+AllowShortBlocksOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+BinPackArguments: false
+BinPackParameters: false
+BreakConstructorInitializers: BeforeComma
+BreakBeforeTernaryOperators: true
+BreakStringLiterals: true
+IndentCaseLabels: true # Properly indent switch-case labels (ES.78)
+KeepEmptyLinesAtTheStartOfBlocks: false
+NamespaceIndentation: All
+AccessModifierOffset: -8 # Ensure access modifiers are not indented
+ReflowComments: true # Ensures properly formatted comments
+SortIncludes: true # Ensures include order is consistent (SF.1)
+SpaceAfterCStyleCast: true
+SpacesBeforeTrailingComments: 1
+SpacesInAngles: false # Standard template syntax
+SpacesInContainerLiterals: true
+SpacesInParentheses: false
+Standard: Latest
+Cpp11BracedListStyle: true # Enforce {} initialization (C.48)
+
